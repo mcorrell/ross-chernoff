@@ -32,6 +32,15 @@ var cloud_series = [0.0,0.2,0.4,0.8];
 var mountain_series = [0.0,0.2,0.4,0.8];
 var tree_series = [0.0,0.2,0.4,0.8];
 
+/*
+  Some people don't like color in their paintings, and just want a baseline condition
+  where all of the glyphs we use end up just black and white.
+  Personally, I like to play with color and shade and just sort of explore with my world,
+  but the wonderful thing about painting is that you can do whatever you want.
+  It's your world, and it's important to have fun.
+*/
+var monochrome = false;
+
 function setup(){
 
   titanium_white = color(255,255,255);
@@ -55,11 +64,11 @@ function setup(){
   */
 
   createCanvas(450,450);
+  background(255);
   noLoop();
 }
 
 function draw(){
-
   drawSimple();
 
 }
@@ -70,32 +79,51 @@ function drawSimple(){
    Let's just make a very simple glyph-like representation of the time series for now.
    We'll get fancier with brushes and textures once we've got the basics under control.
   */
+  drawSky();
+  drawClouds();
+  drawMountains();
+  drawTrees();
+  drawWater();
 
+  /*
+   And that's it! We've got a finished painting of three time series.
+   See how easy that was? And you can create one too, all by yourself.
+
+   Thanks for painting with me, I hope to see you all again real soon!
+  */
+}
+
+function drawSky(){
   /*
    Let's choose just a real simple color for our sky, a mixture of thalo blue and white.
   */
+  if(!monochrome)
+    background(lerpColor(thalo_blue,titanium_white,0.75));
+}
 
-  background(lerpColor(thalo_blue,titanium_white,0.75));
-
-  var delta;
-  delta = width/cloud_series.length;
-
+function drawClouds(){
   /*
    Now let's draw fluffy little titanium white clouds, just nice Catmull Rom splines
    control points for every data point.
   */
+  var delta;
+  delta = width/cloud_series.length;
+  if(!monochrome){
+    fill(titanium_white);
+  }
+  else{
+    fill(0);
+  }
 
-  fill(titanium_white);
   noStroke();
-  translate(delta/2,0);
   beginShape();
-  curveVertex(-delta,height/8);
   curveVertex(0,height/8);
+  curveVertex(delta/2.0,height/8);
   for(var i = 0;i<cloud_series.length;i++){
-    curveVertex(i*delta , (height/8)+ (height/8*cloud_series[i]));
+    curveVertex(i*delta + (delta/2.0), (height/8)+ (height/8*cloud_series[i]));
   }
   curveVertex(width , height/8);
-  curveVertex((cloud_series.length+1)*delta , height/8);
+  curveVertex(width + (delta/2.0) , height/8);
   endShape();
 
   /*
@@ -105,22 +133,24 @@ function drawSimple(){
   */
 
   beginShape();
-  curveVertex(-delta,height/8);
   curveVertex(0,height/8);
+  curveVertex(delta/2.0,height/8);
   for(var i = 0;i<cloud_series.length;i++){
-    stroke(titanium_white);
-    noStroke();
-    curveVertex(i*delta , (height/8)- (height/8*cloud_series[i]));
+    curveVertex(i*delta  + (delta/2.0), (height/8)- (height/8*cloud_series[i]));
   }
   curveVertex(width , height/8);
-  curveVertex((cloud_series.length+1)*delta , height/8);
+  curveVertex(width+(delta/2.0) , height/8);
   endShape();
-  translate(-delta/2,0);
 
   /*
     And finally, we'll fill in the gaps.
   */
-  stroke(titanium_white);
+  if(!monochrome){
+    stroke(titanium_white);
+  }
+  else{
+    stroke(0);
+  }
   strokeWeight(2);
   line(0, height/8, width, height/8);
 
@@ -129,13 +159,15 @@ function drawSimple(){
   */
   strokeWeight(1);
   noStroke();
+}
 
+function drawMountains(){
   /*
    And now the big all-mighty mountains, with strong, big triangles for each value.
    We'll be using my "mountain mixture", which is van dyke brown with just a touch of dark sienna.
   */
 
-  var mountain_mix = lerpColor(dark_sienna,van_dyke_brown,0.8);
+  var mountain_mix = monochrome ? color(0) : lerpColor(van_dyke_brown,dark_sienna,0.2);
   fill(mountain_mix);
   delta = width/mountain_series.length;
 
@@ -145,16 +177,21 @@ function drawSimple(){
 
   /*
    Let's have the bottom of our mountains recede just a little bit, creating the illusion of mist.
+   With our magic white canvas, these kinds of effects can happen automatically.
   */
 
   var lerpAmount = 0;
-  for(var i = 0;i<height/4;i++){
+  var mheight = height/2;
+  var lerpDelta = 1.5/mheight;
+  for(var i = 0;i<mheight;i++){
     stroke(lerpColor(mountain_mix, color(255,0), lerpAmount));
-    line(0,i + (height/2), width, i + (height/2));
-    lerpAmount+= 1/(3*height/4);
+    line(0,i + mheight, width, i + mheight);
+    lerpAmount+= lerpDelta;
   }
   noStroke();
+}
 
+function drawTrees(){
   /*
    Let's add a line of happy little trees! We'll load up our brush with sap green, and to that we'll add
    just a little bit of cadmium yellow. The cad yellow is a strong color, so it only takes a little bit!
@@ -162,18 +199,25 @@ function drawSimple(){
   */
 
   var tHeight,index;
-  fill(lerpColor(sap_green,cadmium_yellow,0.1));
+  if(!monochrome){
+    fill(lerpColor(sap_green,cadmium_yellow,0.1));
+  }
+  else{
+    fill(0);
+  }
+
   for(var i = 0;i<width;i+=10){
     index = map(i,0,width,0,tree_series.length-1);
     tHeight = ((height/4) * lerp( tree_series[floor(index)], tree_series[ceil(index)], index - floor(index)));
     triangle( i, 3*(height/4), i + 5, 3*(height/4) - tHeight, i + 10, 3*(height/4));
   }
+}
 
+function drawWater(){
   /*
    Finally, we'll add some water down at the bottom of our painting. By just querying the raster, blurring it, and then
    flipping it, we get these neat reflection effects automatically.
   */
-
   var img = get(0,0,width,3*height/4);
   push();
   scale(1.0,-1.0);
@@ -197,11 +241,4 @@ function drawSimple(){
 
   strokeWeight(0.25);
   line(0,3*height/4 + 8,width,3*height/4 + 8);
-
-  /*
-   And that's it! We've got a finished painting of three time series.
-   See how easy that was? And you can create one too, all by yourself.
-
-   Thanks for painting with me, I hope to see you all again real soon!
-  */
 }
