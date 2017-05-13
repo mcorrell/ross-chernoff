@@ -28,9 +28,11 @@ var bright_red;
  and mountains I think could use some more sedate, lower frequency signals.
 */
 
-var cloud_series = [0.0,0.2,0.4,0.8];
-var mountain_series = [0.0,0.2,0.4,0.8];
-var tree_series = [0.0,0.2,0.4,0.8];
+var data;
+
+var cloud_series;
+var mountain_series;
+var tree_series;
 
 /*
   Some people don't like color in their paintings, and just want a baseline condition
@@ -39,9 +41,30 @@ var tree_series = [0.0,0.2,0.4,0.8];
   but the wonderful thing about painting is that you can do whatever you want.
   It's your world, and it's important to have fun.
 */
+
 var monochrome = false;
 
+function preload(){
+  data = loadTable("data/bobross.csv","csv","header");
+}
+
 function setup(){
+
+  /*
+    Here's a fun little dataset I thought we'd use: it's how many times different features
+    appeared in each of the 31 seasons of The Joy of Painting.
+    So the clouds will be counting clouds, the mountains mountains, and the trees trees.
+    I think it's nice when things represent what they're supposed to, don't you?
+  */
+
+  cloud_series = data.getColumn("Clouds%").map(Number);
+  mountain_series = data.getColumn("Mountains%").map(Number);
+  tree_series = data.getColumn("Trees%").map(Number);
+
+
+/*
+  We'll just define each of our colors while we're at it:
+*/
 
   titanium_white = color(255,255,255);
   thalo_blue = color(0,15,137);
@@ -56,6 +79,9 @@ function setup(){
   indian_yellow = color(227,168,87);
   bright_red = color(170,1,20);
 
+}
+
+function draw(){
   /*
    Now first we're going to take a clean canvas that I've pre-treated with a coat of magic white.
    And what we're going to do today is visualize a set of wonderful little time series.
@@ -66,9 +92,7 @@ function setup(){
   createCanvas(450,450);
   background(255);
   noLoop();
-}
 
-function draw(){
   drawSimple();
 
 }
@@ -145,6 +169,7 @@ function drawClouds(){
   /*
     And finally, we'll fill in the gaps.
   */
+
   if(!monochrome){
     stroke(titanium_white);
   }
@@ -156,7 +181,9 @@ function drawClouds(){
 
   /*
     Let's clean our brush and bring things back to normal.
+    Just really beat the devil out of it!
   */
+
   strokeWeight(1);
   noStroke();
 }
