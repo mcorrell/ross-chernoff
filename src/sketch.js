@@ -89,7 +89,7 @@ function draw(){
    is that it's your world, you can visualize whatever time series you'd like.
   */
 
-  createCanvas(450,450);
+  createCanvas(900,450);
   background(255);
   noLoop();
 
@@ -141,8 +141,8 @@ function drawClouds(){
 
   noStroke();
   beginShape();
+  curveVertex(-delta/2.0,height/8);
   curveVertex(0,height/8);
-  curveVertex(delta/2.0,height/8);
   for(var i = 0;i<cloud_series.length;i++){
     curveVertex(i*delta + (delta/2.0), (height/8)+ (height/8*cloud_series[i]));
   }
@@ -157,8 +157,8 @@ function drawClouds(){
   */
 
   beginShape();
+  curveVertex(-delta/2.0,height/8);
   curveVertex(0,height/8);
-  curveVertex(delta/2.0,height/8);
   for(var i = 0;i<cloud_series.length;i++){
     curveVertex(i*delta  + (delta/2.0), (height/8)- (height/8*cloud_series[i]));
   }
@@ -199,7 +199,7 @@ function drawMountains(){
   delta = width/mountain_series.length;
 
   for(var i = 0;i<mountain_series.length;i++){
-    triangle(i*delta,height/2,(i * delta) + (delta/2), height/2 - ((height/4)*mountain_series[i]), (i+1)*delta, height/2);
+    triangle(((i-1) * delta) + (delta/2),height/2,(i * delta) + (delta/2), height/2 - ((height/4)*mountain_series[i]), ((i+1) * delta) + (delta/2), height/2);
   }
 
   /*
@@ -220,24 +220,85 @@ function drawMountains(){
 
 function drawTrees(){
   /*
-   Let's add a line of happy little trees! We'll load up our brush with sap green, and to that we'll add
-   just a little bit of cadmium yellow. The cad yellow is a strong color, so it only takes a little bit!
+   Let's add a line of happy little trees!
    We'll just plop down a tree at regular intervals, linearly interpolating between values.
   */
 
-  var tHeight,index;
+  var tHeight,index,tColor;
+
+  /*
+    We want these trees to recede into the background, so we'll make them sap green with a touch of
+    van dyke brown.
+  */
+
+  tColor = lerpColor(sap_green,van_dyke_brown,0.2);
+
+  for(var i = -delta/2;i<width+delta/2;i+=8){
+    index = map(i,delta/2,width-delta/2,0,tree_series.length-1);
+    index = constrain(index,0,tree_series.length-1);
+    tHeight = ((height/4) * lerp( tree_series[floor(index)], tree_series[ceil(index)], index - floor(index)));
+    drawTree(i,3*(height/4),20,tHeight,tColor);
+  }
+
+  /*
+    And we want to make sure we're interpolating our points, so let's add a line
+    of extra trees in front.
+    These should be a little brighter, so they pop out, and give the illusion of depth,
+    so we'll load up our brush with sap green, and to that we'll add just a little bit of cadmium yellow.
+    The cad yellow is a strong color, so it only takes a little bit!
+  */
+
+  tColor = lerpColor(sap_green,cadmium_yellow,0.1);
+
+  delta = width/mountain_series.length;
+  for(var i = 0;i<tree_series.length;i++){
+    drawTree((i*delta) + (delta/2), 3*(height/4), 20, (height/4) * tree_series[i],tColor);
+  }
+
+}
+
+function drawTree(x,y,w,h,tColor){
+  var maxHeight = (height/4);
+  /*
+    For the trunk of our tree, we'll use just a thin line of van dyke brown, just showing the suggestion
+    of a trunk.
+  */
+
   if(!monochrome){
-    fill(lerpColor(sap_green,cadmium_yellow,0.1));
+    fill(van_dyke_brown);
+  }
+  else{
+    fill(0);
+  }
+  triangle(x-1,y,x,y-h,x+1,y);
+
+  if(!monochrome){
+    fill(tColor);
   }
   else{
     fill(0);
   }
 
-  for(var i = 0;i<width;i+=10){
-    index = map(i,0,width,0,tree_series.length-1);
-    tHeight = ((height/4) * lerp( tree_series[floor(index)], tree_series[ceil(index)], index - floor(index)));
-    triangle( i, 3*(height/4), i + 5, 3*(height/4) - tHeight, i + 10, 3*(height/4));
+  /*
+    For our branches, we'll just use our fan brush, a just push in a spray of needles.
+    Growing up in Alaska, there would always be these big beautiful fir trees.
+ */
+  var maxLayers = 7;
+  var layerHeight = maxHeight/maxLayers;
+  var layers = floor(map(h,0,maxHeight,0,maxLayers));
+  var layerWidth;
+  for(var i = 1;i<layers;i++){
+    layerWidth = (layerHeight*(layers-i)) * (w/h);
+    triangle(x, y-(layerHeight*(i+1)), x - (layerWidth/2), y-(layerHeight*i), x + (layerWidth/2), y-(layerHeight*i));
   }
+
+  /*
+    And we can't forget just a happy little tree top.
+  */
+
+  layerWidth = (layerHeight) * (w/h);
+  triangle(x, y-h, x - (layerWidth/2), y-h+layerHeight, x + (layerWidth/2), y-h+layerHeight);
+
 }
 
 function drawWater(){
