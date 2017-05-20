@@ -231,19 +231,33 @@ function drawTrees(){
     van dyke brown.
   */
 
-  tColor = lerpColor(sap_green,van_dyke_brown,0.2);
+  tColor = lerpColor(sap_green,van_dyke_brown,0.45);
 
-  for(var i = -delta/2;i<width+delta/2;i+=8){
+  for(var i = -delta/2;i<width+delta/2;i+=4){
     index = map(i,delta/2,width-delta/2,0,tree_series.length-1);
     index = constrain(index,0,tree_series.length-1);
     tHeight = ((height/4) * lerp( tree_series[floor(index)], tree_series[ceil(index)], index - floor(index)));
-    drawTree(i,3*(height/4),20,tHeight,tColor);
+    drawTree(i,3*(height/4),40,tHeight,tColor);
+  }
+
+  /*
+  Just by making our trees lighter, we can bring them into the foreground, and create the illusion
+  of a deep forest.
+  */
+
+  tColor = lerpColor(sap_green,van_dyke_brown,0.25);
+
+  for(var i = -delta/2;i<width+delta/2;i+=8 + 10*random()){
+    index = map(i,delta/2,width-delta/2,0,tree_series.length-1);
+    index = constrain(index,0,tree_series.length-1);
+    tHeight = ((height/4) * lerp( tree_series[floor(index)], tree_series[ceil(index)], index - floor(index)));
+    drawTree(i,3*(height/4),30,tHeight,tColor);
   }
 
   /*
     And we want to make sure we're interpolating our points, so let's add a line
     of extra trees in front.
-    These should be a little brighter, so they pop out, and give the illusion of depth,
+    These should be a little brighter, so they pop out right into the foreground,
     so we'll load up our brush with sap green, and to that we'll add just a little bit of cadmium yellow.
     The cad yellow is a strong color, so it only takes a little bit!
   */
@@ -252,7 +266,7 @@ function drawTrees(){
 
   delta = width/mountain_series.length;
   for(var i = 0;i<tree_series.length;i++){
-    drawTree((i*delta) + (delta/2), 3*(height/4), 20, (height/4) * tree_series[i],tColor);
+    drawTree((i*delta) + (delta/2), 3*(height/4), 35, (height/4) * tree_series[i],tColor);
   }
 
 }
@@ -289,7 +303,7 @@ function drawTree(x,y,w,h,tColor){
   var layerWidth;
   for(var i = 1;i<layers;i++){
     layerWidth = (layerHeight*(layers-i)) * (w/h);
-    triangle(x, y-(layerHeight*(i+1)), x - (layerWidth/2), y-(layerHeight*i), x + (layerWidth/2), y-(layerHeight*i));
+    triangle(x, y-(layerHeight*(i+1)), x - (layerWidth/2), y-(layerHeight*(i-1)), x + (layerWidth/2), y-(layerHeight*(i-1)));
   }
 
   /*
@@ -297,8 +311,7 @@ function drawTree(x,y,w,h,tColor){
   */
 
   layerWidth = (layerHeight) * (w/h);
-  triangle(x, y-h, x - (layerWidth/2), y-h+layerHeight, x + (layerWidth/2), y-h+layerHeight);
-
+  triangle(x, y-h, x - (layerWidth/2), y-h+(2*layerHeight), x + (layerWidth/2), y-h+(2*layerHeight));
 }
 
 function drawWater(){
