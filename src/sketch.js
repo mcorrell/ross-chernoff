@@ -109,8 +109,17 @@ function drawSimple(){
   drawTrees();
   drawWater();
 
-  drawXScale("Season of Joy of Painting",1,31,32);
+  /*
+    And with that, I think we can call our center painting just about finished.
+    But, just as a painting isn't complete without a signature,
+    our visualization isn't complete without axes, and data provenance.
+  */
+  drawXScale("Season of \"Joy of Painting\"",1,31,32);
   drawYScale("How Often Bob Ross Painted It (%)","Clouds",0,1,"Mountains",0,1,"Trees",0,1);
+  d3.select("body").append("p")
+  .style("font-size","0.8em")
+  .html("Data from <a href=\"https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/\">FiveThirtyEight</a>");
+
   /*
    And that's it! We've got a finished painting of three time series.
    See how easy that was? And you can create one too, all by yourself.
@@ -445,7 +454,7 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
   /*
     Last but not least, we've got our tree axis.
   */
-  
+
   var tY = d3.scaleLinear().domain([tMin,tMax]).range([3*(height/4), height/2]);
   var taxis = d3.axisRight(tY);
   taxis.ticks(4,"0%").tickPadding([30]);
