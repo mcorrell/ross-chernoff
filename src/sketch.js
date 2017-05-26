@@ -109,6 +109,8 @@ function drawSimple(){
   drawTrees();
   drawWater();
 
+  drawXScale("Season of Joy of Painting",1,31,32);
+  drawYScale("How Often Bob Ross Painted It (%)","Clouds",0,1,"Mountains",0,1,"Trees",0,1);
   /*
    And that's it! We've got a finished painting of three time series.
    See how easy that was? And you can create one too, all by yourself.
@@ -233,7 +235,7 @@ function drawTrees(){
 
   tColor = lerpColor(sap_green,van_dyke_brown,0.45);
 
-  for(var i = -delta/2;i<width+delta/2;i+=4){
+  for(var i = -delta/2;i<width+delta/2;i+=4 + 5*random()){
     index = map(i,delta/2,width-delta/2,0,tree_series.length-1);
     index = constrain(index,0,tree_series.length-1);
     tHeight = ((height/4) * lerp( tree_series[floor(index)], tree_series[ceil(index)], index - floor(index)));
@@ -342,4 +344,128 @@ function drawWater(){
 
   strokeWeight(0.25);
   line(0,3*height/4 + 8,width,3*height/4 + 8);
+}
+
+function drawXScale(name,dMin,dMax,stops){
+  /*
+    Of course, it wouldn't be much of a chart without some axes!
+    For this one, let's ask our old friend d3 for help.
+  */
+  var xsvg = d3.select("body").append("svg")
+    .attr("width",width)
+    .attr("height",50);
+
+  var delta = width/stops;
+  var x = d3.scaleLinear().domain([dMin,dMax]).range([delta/2,width-(delta/2)]);
+
+  var xaxis = d3.axisBottom(x);
+  xaxis.ticks(stops);
+  xsvg.append("g").call(xaxis);
+  xsvg.append("text")
+    .attr("y", "35px")
+    .attr("x", "50%")
+    .attr("id","yaxis")
+    .style("text-anchor","middle")
+    .text(name);
+}
+
+function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
+  /*
+    We'll need three vertical axes, one each for our clouds, mountains, and trees.
+    Once again, I think it makes sense to just use d3 for this!
+  */
+
+  var ysvg = d3.select("body").append("svg")
+  .attr("width",100)
+  .attr("height",height)
+  .attr("id","yaxis")
+  .style("position","absolute")
+  .style("top","8px");
+
+  ysvg.append("text")
+    .attr("y", "-80px")
+    .attr("x", 3*height/8)
+    .attr("transform", "rotate(90)")
+    .style("text-anchor","middle")
+    .text(aName);
+
+/*
+  Since the clouds are a violin chart, we could have two axes for them,
+  if we wanted. I think that's a little too much, but if you want to duplicate
+  the y axis, I've left the code for you right there.
+*/
+
+/*
+  var cYTop = d3.scaleLinear().domain([cMin,cMax]).range([height/8, 0]);
+  var caxisTop = d3.axisRight(cYTop);
+  caxisTop.ticks(2,"0%").tickPadding([30]);
+  ysvg.append("g")
+    .style("stroke",thalo_blue)
+    .call(caxisTop);
+*/
+
+/*
+  Otherwise, let's just draw the bottom half of the cloud axis.
+  And make sure to add some label padding, to leave room for our
+  other axes. It can be messy messy messy to have labels overlap.
+*/
+  var cYBot = d3.scaleLinear().domain([cMin,cMax]).range([height/8,height/4]);
+  var caxisBot = d3.axisRight(cYBot);
+  caxisBot.ticks(3,"0%").tickPadding([30]);
+  ysvg.append("g")
+    .style("stroke",thalo_blue)
+    .call(caxisBot);
+
+  ysvg.append("text")
+    .attr("y", "-60px")
+    .attr("x", height/8)
+    .attr("transform", "rotate(90)")
+    .attr("font-size","0.8em")
+    .style("text-anchor","middle")
+    .text(cName);
+
+/*
+  Now it's time for our mountain axis. Just a straightforward y axis.
+*/
+  var mY = d3.scaleLinear().domain([tMin,tMax]).range([height/2, height/4]);
+  var maxis = d3.axisRight(mY);
+  maxis.ticks(4,"0%");
+  ysvg.append("g")
+    .style("stroke",dark_sienna)
+    .call(maxis);
+
+  ysvg.append("text")
+    .attr("y", "-60px")
+    .attr("x", mY(mMin+  (mMax-mMin)/2)    )
+    .attr("transform", "rotate(90)")
+    .attr("font-size","0.8em")
+    .style("text-anchor","middle")
+    .text(mName);
+
+  /*
+    Last but not least, we've got our tree axis.
+  */
+  
+  var tY = d3.scaleLinear().domain([tMin,tMax]).range([3*(height/4), height/2]);
+  var taxis = d3.axisRight(tY);
+  taxis.ticks(4,"0%").tickPadding([30]);
+  ysvg.append("g")
+    .style("stroke",sap_green)
+    .call(taxis);
+
+  ysvg.append("text")
+    .attr("y", "-60px")
+    .attr("x", tY(tMin+  (tMax-tMin)/2)    )
+    .attr("transform", "rotate(90)")
+    .attr("font-size","0.8em")
+    .style("text-anchor","middle")
+    .text(tName);
+
+  /*
+    Whew! That's a lot of work just to get some tick marks next to our painting.
+    But I'd be even more work to try to do it in p5, trust me.
+    I think these little d3 svg axes will do just fine.
+    I've just kept them at the default style here, but it's your
+    world, you can style your axes any way you feel like.
+  */
 }
