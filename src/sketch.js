@@ -89,7 +89,7 @@ function draw(){
    is that it's your world, you can visualize whatever time series you'd like.
   */
 
-  createCanvas(900,450);
+  createCanvas(600,450);
   background(255);
   noLoop();
 
@@ -361,6 +361,7 @@ function drawXScale(name,dMin,dMax,stops){
     Of course, it wouldn't be much of a chart without some axes!
     For this one, let's ask our old friend d3 for help.
   */
+  d3.select("body").append("br");
   var xsvg = d3.select("body").append("svg")
     .attr("width",width)
     .attr("height",50);
