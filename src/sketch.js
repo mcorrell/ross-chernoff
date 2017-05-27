@@ -151,6 +151,7 @@ function drawClouds(){
   }
 
   noStroke();
+
   beginShape();
   curveVertex(-delta/2.0,height/8);
   curveVertex(0,height/8);
@@ -389,10 +390,11 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
   .attr("height",height)
   .attr("id","yaxis")
   .style("position","absolute")
-  .style("top","8px");
+  .style("top","0px")
+  .style("padding-top","8px");
 
   ysvg.append("text")
-    .attr("y", "-80px")
+    .attr("y", "-60px")
     .attr("x", 3*height/8)
     .attr("transform", "rotate(90)")
     .style("text-anchor","middle")
@@ -404,29 +406,32 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
   the y axis, I've left the code for you right there.
 */
 
-/*
+
   var cYTop = d3.scaleLinear().domain([cMin,cMax]).range([height/8, 0]);
   var caxisTop = d3.axisRight(cYTop);
-  caxisTop.ticks(2,"0%").tickPadding([30]);
+  caxisTop.ticks(2,"0%");
   ysvg.append("g")
     .style("stroke",thalo_blue)
     .call(caxisTop);
-*/
+
 
 /*
   Otherwise, let's just draw the bottom half of the cloud axis.
-  And make sure to add some label padding, to leave room for our
-  other axes. It can be messy messy messy to have labels overlap.
+  And make sure to tidy up the tick labels.
+  It can be messy messy messy to have labels overlap.
 */
+
+
   var cYBot = d3.scaleLinear().domain([cMin,cMax]).range([height/8,height/4]);
   var caxisBot = d3.axisRight(cYBot);
-  caxisBot.ticks(3,"0%").tickPadding([30]);
+  caxisBot.ticks(3,"0%");
   ysvg.append("g")
     .style("stroke",thalo_blue)
     .call(caxisBot);
 
+
   ysvg.append("text")
-    .attr("y", "-60px")
+    .attr("y", "-40px")
     .attr("x", height/8)
     .attr("transform", "rotate(90)")
     .attr("font-size","0.8em")
@@ -440,11 +445,15 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
   var maxis = d3.axisRight(mY);
   maxis.ticks(4,"0%");
   ysvg.append("g")
+    .attr("id","mtnaxis")
     .style("stroke",dark_sienna)
     .call(maxis);
 
+  // We need to remove the last tick, or we'll overlap with the clouds!
+  d3.select("#mtnaxis").select(".tick:last-child").attr("opacity",0);
+
   ysvg.append("text")
-    .attr("y", "-60px")
+    .attr("y", "-40px")
     .attr("x", mY(mMin+  (mMax-mMin)/2)    )
     .attr("transform", "rotate(90)")
     .attr("font-size","0.8em")
@@ -457,13 +466,17 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
 
   var tY = d3.scaleLinear().domain([tMin,tMax]).range([3*(height/4), height/2]);
   var taxis = d3.axisRight(tY);
-  taxis.ticks(4,"0%").tickPadding([30]);
+  taxis.ticks(4,"0%");
   ysvg.append("g")
+    .attr("id","treeaxis")
     .style("stroke",sap_green)
     .call(taxis);
 
+  // Same as with the mountains, we need to hide the last tick.
+  d3.select("#treeaxis").select(".tick:last-child").attr("opacity",0);
+
   ysvg.append("text")
-    .attr("y", "-60px")
+    .attr("y", "-40px")
     .attr("x", tY(tMin+  (tMax-tMin)/2)    )
     .attr("transform", "rotate(90)")
     .attr("font-size","0.8em")
