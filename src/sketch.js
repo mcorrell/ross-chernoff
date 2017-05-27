@@ -427,9 +427,11 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
   var caxisBot = d3.axisRight(cYBot);
   caxisBot.ticks(3,"0%");
   ysvg.append("g")
+    .attr("id","cloudaxis")
     .style("stroke",thalo_blue)
     .call(caxisBot);
 
+d3.select("#cloudaxis").select(".tick:last-child").select("text").attr("y","-5px");
 
   ysvg.append("text")
     .attr("y", "-40px")
@@ -450,8 +452,9 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
     .style("stroke",dark_sienna)
     .call(maxis);
 
-  // We need to remove the last tick, or we'll overlap with the clouds!
-  d3.select("#mtnaxis").select(".tick:last-child").attr("opacity",0);
+  // We need to jitter the first and last ticks, or we'll overlap!
+  d3.select("#mtnaxis").select(".tick:last-child").select("text").attr("y","5px");
+  d3.select("#mtnaxis").select(".tick").select("text").attr("y","-5px");
 
   ysvg.append("text")
     .attr("y", "-40px")
@@ -473,8 +476,8 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
     .style("stroke",sap_green)
     .call(taxis);
 
-  // Same as with the mountains, we need to hide the last tick.
-  d3.select("#treeaxis").select(".tick:last-child").attr("opacity",0);
+  // Same as with the mountains, we need to jitter the last tick.
+  d3.select("#treeaxis").select(".tick:last-child").select("text").attr("y","5px");
 
   ysvg.append("text")
     .attr("y", "-40px")
