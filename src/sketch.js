@@ -89,7 +89,7 @@ function draw(){
    is that it's your world, you can visualize whatever time series you'd like.
   */
 
-  createCanvas(600,450);
+  createCanvas(900,450);
   background(255);
   noLoop();
 
@@ -152,30 +152,20 @@ function drawClouds(){
 
   noStroke();
 
-  beginShape();
-  curveVertex(-delta/2.0,height/8);
-  curveVertex(0,height/8);
-  for(var i = 0;i<cloud_series.length;i++){
-    curveVertex(i*delta + (delta/2.0), (height/8)+ (height/8*cloud_series[i]));
-  }
-  curveVertex(width , height/8);
-  curveVertex(width + (delta/2.0) , height/8);
-  endShape();
-
   /*
-   This will give us a big cumulus cloud with a flat base. And that's great.
-   But I like my happy clous to have a nice soft shape to them, so let's mirror
-   it on the bottom side.
+   This will give us a big soft cumulus cloud with a flat base.
+   Some people might want to mirror this to make a sort of violin shape.
+   It takes all kinds. It's your world, draw your clouds how you want.
   */
 
   beginShape();
-  curveVertex(-delta/2.0,height/8);
-  curveVertex(0,height/8);
+  curveVertex(-delta/2.0,height/4);
+  curveVertex(0,height/4);
   for(var i = 0;i<cloud_series.length;i++){
-    curveVertex(i*delta  + (delta/2.0), (height/8)- (height/8*cloud_series[i]));
+    curveVertex(i*delta  + (delta/2.0), (height/4)- (height/4*cloud_series[i]));
   }
-  curveVertex(width , height/8);
-  curveVertex(width+(delta/2.0) , height/8);
+  curveVertex(width , height/4);
+  curveVertex(width+(delta/2.0) , height/4);
   endShape();
 
   /*
@@ -189,7 +179,7 @@ function drawClouds(){
     stroke(0);
   }
   strokeWeight(2);
-  line(0, height/8, width, height/8);
+  line(0, height/4, width, height/4);
 
   /*
     Let's clean our brush and bring things back to normal.
@@ -208,7 +198,7 @@ function drawMountains(){
 
   var mountain_mix = monochrome ? color(0) : lerpColor(van_dyke_brown,dark_sienna,0.2);
   fill(mountain_mix);
-  delta = width/mountain_series.length;
+  var delta = width/mountain_series.length;
 
   for(var i = 0;i<mountain_series.length;i++){
     triangle(((i-1) * delta) + (delta/2),height/2,(i * delta) + (delta/2), height/2 - ((height/4)*mountain_series[i]), ((i+1) * delta) + (delta/2), height/2);
@@ -236,20 +226,21 @@ function drawTrees(){
    We'll just plop down a tree at regular intervals, linearly interpolating between values.
   */
 
-  var tHeight,index,tColor;
+  var tHeight,index,tColor,delta;
 
   /*
     We want these trees to recede into the background, so we'll make them sap green with a touch of
     van dyke brown.
   */
 
+  delta = width/mountain_series.length;
   tColor = lerpColor(sap_green,van_dyke_brown,0.45);
 
-  for(var i = -delta/2;i<width+delta/2;i+=4 + 5*random()){
+  for(var i = delta/4;i<width+delta/2;i+= delta){
     index = map(i,delta/2,width-delta/2,0,tree_series.length-1);
     index = constrain(index,0,tree_series.length-1);
     tHeight = ((height/4) * lerp( tree_series[floor(index)], tree_series[ceil(index)], index - floor(index)));
-    drawTree(i,3*(height/4),40,tHeight,tColor);
+    drawTree(i,3*(height/4),1.5*delta,tHeight,tColor);
   }
 
   /*
@@ -259,11 +250,11 @@ function drawTrees(){
 
   tColor = lerpColor(sap_green,van_dyke_brown,0.25);
 
-  for(var i = -delta/2;i<width+delta/2;i+=8 + 10*random()){
+  for(i = -delta/8;i<width+delta/2;i+= delta){
     index = map(i,delta/2,width-delta/2,0,tree_series.length-1);
     index = constrain(index,0,tree_series.length-1);
     tHeight = ((height/4) * lerp( tree_series[floor(index)], tree_series[ceil(index)], index - floor(index)));
-    drawTree(i,3*(height/4),30,tHeight,tColor);
+    drawTree(i,3*(height/4),1.5*delta,tHeight,tColor);
   }
 
   /*
@@ -276,10 +267,13 @@ function drawTrees(){
 
   tColor = lerpColor(sap_green,cadmium_yellow,0.1);
 
-  delta = width/mountain_series.length;
-  for(var i = 0;i<tree_series.length;i++){
-    drawTree((i*delta) + (delta/2), 3*(height/4), 35, (height/4) * tree_series[i],tColor);
+  for(var i = -delta/2;i<width+delta/2;i+= delta){
+    index = map(i,delta/2,width-delta/2,0,tree_series.length-1);
+    index = constrain(index,0,tree_series.length-1);
+    tHeight = ((height/4) * lerp( tree_series[floor(index)], tree_series[ceil(index)], index - floor(index)));
+    drawTree(i,3*(height/4),1.5*delta,tHeight,tColor);
   }
+
 
 }
 
@@ -394,6 +388,11 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
   .style("top","0px")
   .style("padding-top","8px");
 
+
+  /*
+    All good axes need a title!
+  */
+
   ysvg.append("text")
     .attr("y", "-60px")
     .attr("x", 3*height/8)
@@ -401,37 +400,24 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
     .style("text-anchor","middle")
     .text(aName);
 
-/*
-  Since the clouds are a violin chart, we could have two axes for them,
-  if we wanted. I think that's a little too much, but if you want to duplicate
-  the y axis, I've left the code for you right there.
-*/
+  /*
+    Let's start with our cloud axis, right up there at the top.
+  */
 
-
-  var cYTop = d3.scaleLinear().domain([cMin,cMax]).range([height/8, 0]);
-  var caxisTop = d3.axisRight(cYTop);
-  caxisTop.ticks(2,"0%");
-  ysvg.append("g")
-    .style("stroke",thalo_blue)
-    .call(caxisTop);
-
-
-/*
-  Otherwise, let's just draw the bottom half of the cloud axis.
-  And make sure to tidy up the tick labels.
-  It can be messy messy messy to have labels overlap.
-*/
-
-
-  var cYBot = d3.scaleLinear().domain([cMin,cMax]).range([height/8,height/4]);
-  var caxisBot = d3.axisRight(cYBot);
-  caxisBot.ticks(3,"0%");
+  var cY = d3.scaleLinear().domain([cMin,cMax]).range([height/4, 0]);
+  var caxis = d3.axisRight(cY);
+  caxis.ticks(4,"0%");
   ysvg.append("g")
     .attr("id","cloudaxis")
     .style("stroke",thalo_blue)
-    .call(caxisBot);
+    .call(caxis);
 
-d3.select("#cloudaxis").select(".tick:last-child").select("text").attr("y","-5px");
+  /*
+    Make sure to tidy up the tick labels.
+    It can be messy messy messy to have labels overlap.
+  */
+
+  d3.select("#cloudaxis").select(".tick").select("text").attr("y","-5px");
 
   ysvg.append("text")
     .attr("y", "-40px")
@@ -441,9 +427,9 @@ d3.select("#cloudaxis").select(".tick:last-child").select("text").attr("y","-5px
     .style("text-anchor","middle")
     .text(cName);
 
-/*
-  Now it's time for our mountain axis. Just a straightforward y axis.
-*/
+  /*
+    Now it's time for our mountain axis. Just a straightforward y axis.
+  */
   var mY = d3.scaleLinear().domain([tMin,tMax]).range([height/2, height/4]);
   var maxis = d3.axisRight(mY);
   maxis.ticks(4,"0%");
@@ -467,7 +453,6 @@ d3.select("#cloudaxis").select(".tick:last-child").select("text").attr("y","-5px
   /*
     Last but not least, we've got our tree axis.
   */
-
   var tY = d3.scaleLinear().domain([tMin,tMax]).range([3*(height/4), height/2]);
   var taxis = d3.axisRight(tY);
   taxis.ticks(4,"0%");
@@ -491,7 +476,7 @@ d3.select("#cloudaxis").select(".tick:last-child").select("text").attr("y","-5px
     Whew! That's a lot of work just to get some tick marks next to our painting.
     But I'd be even more work to try to do it in p5, trust me.
     I think these little d3 svg axes will do just fine.
-    I've just kept them at the default style here, but it's your
-    world, you can style your axes any way you feel like.
+    I've just kept them at the default style here,
+    but you can style your axes any old way you feel like.
   */
 }
