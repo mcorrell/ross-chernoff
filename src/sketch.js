@@ -44,6 +44,14 @@ var tree_series;
 
 var monochrome = false;
 
+/*
+  I spent a lot of time in Alaska, and there's just something so beautiful about those
+  Big white snow-covered landscapes. I think that's why I have so many paintings set
+  in winter.
+*/
+
+var winter = false;
+
 function preload(){
   data = loadTable("data/bobross.csv","csv","header");
 }
@@ -164,7 +172,7 @@ function drawClouds(){
   for(var i = 0;i<cloud_series.length;i++){
     curveVertex(i*delta  + (delta/2.0), (height/4)- (height/4*cloud_series[i]));
   }
-  curveVertex(width , height/4);
+  curveVertex(width,height/4);
   curveVertex(width+(delta/2.0) , height/4);
   endShape();
 
@@ -195,28 +203,90 @@ function drawMountains(){
    And now the big all-mighty mountains, with strong, big triangles for each value.
    We'll be using my "mountain mixture", which is van dyke brown with just a touch of dark sienna.
   */
-
   var mountain_mix = monochrome ? color(0) : lerpColor(van_dyke_brown,dark_sienna,0.2);
-  fill(mountain_mix);
-  var delta = width/mountain_series.length;
 
-  for(var i = 0;i<mountain_series.length;i++){
-    triangle(((i-1) * delta) + (delta/2),height/2,(i * delta) + (delta/2), height/2 - ((height/4)*mountain_series[i]), ((i+1) * delta) + (delta/2), height/2);
+  var delta = width/mountain_series.length;
+  var sx,ex,mx,sy,my;
+
+  var mountainBottom = 3*(height/4);
+
+  if(winter && !monochrome){
+    /*
+    If it's winter, let's make these look like the big strong mountains of Alaska.
+    */
+    mountain_mix = lerpColor(mountain_mix,titanium_white,0.3);
+    var snowColor = lerpColor(titanium_white,prussian_blue,0.1);
+    var shadowSnowColor = lerpColor(snowColor,prussian_blue,0.3);
+
+    /*
+    We'll want to gently mix the snow color into the regular shape of the mountain,
+    ending about halfway down the slope.
+    */
+    var mountainTop = (height/2) - ((height/4) * max(mountain_series));
+    var snowLine = (height/2) + (height/16);
+    var snowLevel;
   }
 
   /*
-   Let's have the bottom of our mountains recede just a little bit, creating the illusion of mist.
-   With our magic white canvas, these kinds of effects can happen automatically.
+  Let's let the sun play a little on our mountains. Here, the light is coming from
+  the left.
   */
+  var highlightColor = monochrome ? mountain_mix : lerpColor(mountain_mix,titanium_white,0.1);
 
-  var lerpAmount = 0;
-  var mheight = height/2;
-  var lerpDelta = 1.5/mheight;
-  for(var i = 0;i<mheight;i++){
-    stroke(lerpColor(mountain_mix, color(255,0), lerpAmount));
-    line(0,i + mheight, width, i + mheight);
-    lerpAmount+= lerpDelta;
+  /*
+  We can add a touch of blue to indicate shadows.
+  */
+  var shadowColor = monochrome ? mountain_mix : lerpColor(mountain_mix,prussian_blue,0.2);
+
+  /*
+  Finally, we'll want to bring in a little of our sky color towards the bottom of the mountains,
+  to indicate mist.
+  This will also help our mountains recede into the background of the painting.
+  With our magic white canvas, these kinds of effects can happen automatically.
+  */
+  var mistColor = winter ? lerpColor(mountain_mix,thalo_blue,0.25) : lerpColor(thalo_blue,titanium_white,0.75);
+
+  if(monochrome){
+      mistColor = color(255);
   }
+
+  stroke(0,255);
+  strokeWeight(2);
+  for(var i = 0;i<mountain_series.length;i++){
+    sx = ((i-1) * delta) + (delta/2);
+    sy = height/2,
+    mx = (i * delta) + (delta/2);
+    my = (height/2) - ((height/4)*mountain_series[i]);
+    ex = ((i+1) * delta) + (delta/2);
+
+    var triWidth, mistLevel,sunColor,shadowColor;
+    for(var j = my;j<mountainBottom;j++){
+      if(j>=my){
+        mistLevel = map(j,(height/2),mountainBottom,0,1);
+        triWidth = map(j,my,sy,0,mx-sx);
+        if(winter && j<snowLine){
+          snowLevel = map(j,mountainTop,snowLine,2,0);
+
+          sunColor = lerpColor(highlightColor,snowColor,snowLevel);
+          shadeColor = lerpColor(shadowColor,shadowSnowColor,snowLevel);
+
+          sunColor = lerpColor(sunColor,mistColor,mistLevel);
+          shadeColor = lerpColor(shadeColor,mistColor,mistLevel);
+        }
+        else{
+          sunColor = lerpColor(highlightColor,mistColor,mistLevel);
+          shadeColor = lerpColor(shadowColor,mistColor,mistLevel);
+        }
+
+        stroke(sunColor);
+        line(mx-triWidth,j,mx,j);
+        stroke(shadeColor);
+
+        line(mx,j,mx+triWidth,j);
+      }
+    }
+  }
+
   noStroke();
 }
 
@@ -234,7 +304,8 @@ function drawTrees(){
   */
 
   delta = width/mountain_series.length;
-  tColor = lerpColor(sap_green,van_dyke_brown,0.45);
+
+  tColor = winter ? lerpColor(sap_green,van_dyke_brown,0.75) : lerpColor(sap_green,van_dyke_brown,0.45);
 
   for(var i = delta/4;i<width+delta/2;i+= delta){
     index = map(i,delta/2,width-delta/2,0,tree_series.length-1);
@@ -248,7 +319,7 @@ function drawTrees(){
   of a deep forest.
   */
 
-  tColor = lerpColor(sap_green,van_dyke_brown,0.25);
+  tColor = winter ? lerpColor(sap_green,van_dyke_brown,0.55) : lerpColor(sap_green,van_dyke_brown,0.25);
 
   for(i = -delta/8;i<width+delta/2;i+= delta){
     index = map(i,delta/2,width-delta/2,0,tree_series.length-1);
@@ -265,7 +336,7 @@ function drawTrees(){
     The cad yellow is a strong color, so it only takes a little bit!
   */
 
-  tColor = lerpColor(sap_green,cadmium_yellow,0.1);
+  tColor = winter ? lerpColor(lerpColor(sap_green,van_dyke_brown,0.35),cadmium_yellow,0.1) : lerpColor(sap_green,cadmium_yellow,0.1);
 
   for(var i = -delta/2;i<width+delta/2;i+= delta){
     index = map(i,delta/2,width-delta/2,0,tree_series.length-1);
@@ -306,10 +377,17 @@ function drawTree(x,y,w,h,tColor){
   var maxLayers = 7;
   var layerHeight = maxHeight/maxLayers;
   var layers = floor(map(h,0,maxHeight,0,maxLayers));
-  var layerWidth;
+  var layerWidth, sx, mx, ex, sy, my, triWidth;
+
   for(var i = 1;i<layers;i++){
     layerWidth = (layerHeight*(layers-i)) * (w/h);
-    triangle(x, y-(layerHeight*(i+1)), x - (layerWidth/2), y-(layerHeight*(i-1)), x + (layerWidth/2), y-(layerHeight*(i-1)));
+    sx = x - (layerWidth/2);
+    sy = y - (layerHeight*(i-1));
+    mx = x;
+    my = y - (layerHeight*(i+1));
+    ex = x + (layerWidth/2);
+
+    triangle(sx,sy,mx,my,ex,sy);
   }
 
   /*
@@ -317,7 +395,13 @@ function drawTree(x,y,w,h,tColor){
   */
 
   layerWidth = (layerHeight) * (w/h);
-  triangle(x, y-h, x - (layerWidth/2), y-h+(2*layerHeight), x + (layerWidth/2), y-h+(2*layerHeight));
+  sx = x - (layerWidth/2);
+  sy = y - (layerHeight*(i-1));
+  mx = x;
+  my = y - (layerHeight*(i+1));
+  ex = x + (layerWidth/2);
+
+  triangle(sx,sy,mx,my,ex,sy);
 }
 
 function drawWater(){
