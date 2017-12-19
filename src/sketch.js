@@ -413,15 +413,30 @@ function drawWater(){
   push();
   scale(1.0,-1.0);
   img.filter("BLUR",4);
-  image(img,0,-3*height/4,width,-height/4);
+  image(img,0,-3*height/4,width,-height/2);
   pop();
+
+
+  /*
+  Let's blend a little bit of white into our water, to make it seem clear and bright.
+  */
+  strokeWeight(2);
+
+  var opacity;
+  stroke
+  for(var i = 0;i<width/2;i++){
+      opacity = map(i,0,width/2,0.5,1);
+      stroke(lerpColor(titanium_white,color(255,0),opacity));
+      if(i>0){
+        line(width/2 - i,3*height/4,width/2 - i,height);
+      }
+      line(width/2 + i,3*height/4,width/2 + i,height);
+  }
 
   /*
    A couple of straight white lines help define the shore, and makes the waterline sparkle.
   */
-
   stroke(titanium_white);
-  strokeWeight(2);
   line(0,3*height/4,width,3*height/4);
 
   strokeWeight(1);
