@@ -155,39 +155,42 @@ function drawClouds(){
     fill(titanium_white);
   }
   else{
-    fill(0);
+    fill(128);
   }
 
   noStroke();
 
   /*
+   While we could use cardinal splines, or a kde, or plain old monotonic
+   interpolation, I'm just setting up a big bezier curve with flat
+   flat tangents.
+
    This will give us a big soft cumulus cloud with a flat base.
    Some people might want to mirror this to make a sort of violin shape.
    It takes all kinds. It's your world, draw your clouds how you want.
   */
 
+  var dx,dy,y1,y2,x1,x2;
   beginShape();
-  curveVertex(-delta/2.0,height/4);
-  curveVertex(0,height/4);
+  vertex(-delta/2,height/4);
+  bezierVertex(-delta/4,height/4,-delta/4.0,height/4,0,height/4);
+  y1 = height/4;
+  x1 = -delta/4;
   for(var i = 0;i<cloud_series.length;i++){
-    curveVertex(i*delta  + (delta/2.0), (height/4)- (height/4*cloud_series[i]));
+    y2 = (height/4) - (height/4*cloud_series[i]);
+    x2 = (delta*i) + delta/2;
+    dy = y2-y1;
+
+    bezierVertex(x1 + (delta/2),y1,x1+(delta/2),y2,x2,y2);
+    y1 = y2;
+    x1 = x2;
   }
-  curveVertex(width,height/4);
-  curveVertex(width+(delta/2.0) , height/4);
+
+  y2 = height/4;
+  dy = y2-y1;
+  bezierVertex(width-(delta/4),y1,width-(delta/4),y2,width,height/4);
+  vertex(width+(delta/2.0) , height/4);
   endShape();
-
-  /*
-    And finally, we'll fill in the gaps.
-  */
-
-  if(!monochrome){
-    stroke(titanium_white);
-  }
-  else{
-    stroke(0);
-  }
-  strokeWeight(2);
-  line(0, height/4, width, height/4);
 
   /*
     Let's clean our brush and bring things back to normal.
@@ -203,7 +206,7 @@ function drawMountains(){
    And now the big all-mighty mountains, with strong, big triangles for each value.
    We'll be using my "mountain mixture", which is van dyke brown with just a touch of dark sienna.
   */
-  var mountain_mix = monochrome ? color(0) : lerpColor(van_dyke_brown,dark_sienna,0.2);
+  var mountain_mix = monochrome ? color(64) : lerpColor(van_dyke_brown,dark_sienna,0.2);
 
   var delta = width/mountain_series.length;
   var sx,ex,mx,sy,my;
@@ -338,13 +341,12 @@ function drawTrees(){
 
   tColor = winter ? lerpColor(lerpColor(sap_green,van_dyke_brown,0.35),cadmium_yellow,0.1) : lerpColor(sap_green,cadmium_yellow,0.1);
 
-  for(var i = -delta/2;i<width+delta/2;i+= delta){
-    index = map(i,delta/2,width-delta/2,0,tree_series.length-1);
-    index = constrain(index,0,tree_series.length-1);
-    tHeight = ((height/4) * lerp( tree_series[floor(index)], tree_series[ceil(index)], index - floor(index)));
-    drawTree(i,3*(height/4),1.5*delta,tHeight,tColor);
+  var x = 0;
+  for(i = 0;i<tree_series.length;i++){
+    x = map(i+0.5,0,tree_series.length,0,width);
+    tHeight = ((height/4) * tree_series[i]);
+    drawTree(x,3*(height/4),1.5*delta,tHeight,tColor);
   }
-
 
 }
 
@@ -398,7 +400,7 @@ function drawTree(x,y,w,h,tColor){
   sx = x - (layerWidth/2);
   sy = y - (layerHeight*(i-1));
   mx = x;
-  my = y - (layerHeight*(i+1));
+  my = y - h;
   ex = x + (layerWidth/2);
 
   triangle(sx,sy,mx,my,ex,sy);
