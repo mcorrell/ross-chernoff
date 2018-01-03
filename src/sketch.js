@@ -72,7 +72,6 @@ function preload(){
 }
 
 function setup(){
-
   /*
     Here's a fun little dataset I thought we'd use: it's how many times different features
     appeared in each of the 31 seasons of The Joy of Painting.
@@ -83,7 +82,6 @@ function setup(){
   cloud_series = data.getColumn("Clouds%").map(Number);
   mountain_series = data.getColumn("Mountains%").map(Number);
   tree_series = data.getColumn("Trees%").map(Number);
-
 
 /*
   We'll just define each of our colors while we're at it:
@@ -101,7 +99,6 @@ function setup(){
   yellow_ochre = color(204,170,43);
   indian_yellow = color(227,168,87);
   bright_red = color(170,1,20);
-
 }
 
 function draw(){
@@ -320,6 +317,13 @@ function drawMountains(){
     my = (height/2) - ((height/4)*mountain_series[i]);
     ex = ((i+1) * delta) + (delta/2);
 
+    /*
+    We want to mix together all of our colors and shadings together,
+    So we can't rely on the p5 triangle method.
+    Instead, we're going to gradually and easily interpolate our colors,
+    line by line. It's important not to overwork or overcomplicate things,
+    or we'll end up with mud.
+    */
     var triWidth, mistLevel,sunColor,shadowColor;
     for(var j = my;j<mountainBottom;j++){
       if(j>=my){
@@ -348,6 +352,9 @@ function drawMountains(){
     }
   }
 
+  /*
+  Don't forget to clean your brush!
+  */
   noStroke();
 }
 
@@ -369,8 +376,6 @@ function drawSimpleMountains(){
     */
     mountain_mix = lerpColor(titanium_white,prussian_blue,0.1);
   }
-
-
 
   noStroke();
   fill(mountain_mix);
@@ -398,6 +403,9 @@ function drawSimpleMountains(){
     line(0,i,width,i);
   }
 
+  /*
+  And, of course, we should clean all of our style elements off of our brush.
+  */
   noStroke();
 }
 
@@ -426,8 +434,8 @@ function drawTrees(){
   }
 
   /*
-  Just by making our trees lighter, we can bring them into the foreground, and create the illusion
-  of a deep forest.
+  Just by making our trees lighter, we can bring them into the foreground, and make it look like
+  there's a deep, layered forest.
   */
 
   tColor = winter ? lerpColor(sap_green,van_dyke_brown,0.55) : lerpColor(sap_green,van_dyke_brown,0.25);
@@ -565,7 +573,7 @@ function drawWater(){
   line(0,3*height/4 + 8,width,3*height/4 + 8);
 }
 
-function drawXScale(name,dMin,dMax,stops){
+function drawXScale(name,dMin,dMax,stops,format){
   /*
     Of course, it wouldn't be much of a chart without some axes!
     For this one, let's ask our old friend d3 for help.
@@ -580,6 +588,11 @@ function drawXScale(name,dMin,dMax,stops){
 
   var xaxis = d3.axisBottom(x);
   xaxis.ticks(stops);
+
+  if(format){
+      xaxis.tickFormat(format);
+  }
+
   xsvg.append("g").call(xaxis);
   xsvg.append("text")
     .attr("y", "35px")
@@ -653,7 +666,9 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
     .style("stroke",dark_sienna)
     .call(maxis);
 
-  // We need to jitter the first and last ticks, or we'll overlap!
+  /*
+   We need to jitter the first and last ticks, or we'll overlap!
+  */
   d3.select("#mtnaxis").select(".tick:last-child").select("text").attr("y","5px");
   d3.select("#mtnaxis").select(".tick").select("text").attr("y","-5px");
 
@@ -676,7 +691,9 @@ function drawYScale(aName,cName,cMin,cMax,mName,mMin,mMax,tName,tMin,tMax){
     .style("stroke",sap_green)
     .call(taxis);
 
-  // Same as with the mountains, we need to jitter the last tick.
+  /*
+    Same as with the mountains, we need to jitter the last tick.
+  */
   d3.select("#treeaxis").select(".tick:last-child").select("text").attr("y","5px");
 
   ysvg.append("text")
