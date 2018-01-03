@@ -34,9 +34,15 @@ var cloud_series;
 var mountain_series;
 var tree_series;
 
+
+/*
+  We've got a lot of options for how to begin. What's most important is that this is
+  your painting, nobody elses'.
+*/
+
 /*
   Some people don't like color in their paintings, and just want a baseline condition
-  where all of the glyphs we use end up just black and white.
+  where all of the glyphs we use end up in shades of gray.
   Personally, I like to play with color and shade and just sort of explore with my world,
   but the wonderful thing about painting is that you can do whatever you want.
   It's your world, and it's important to have fun.
@@ -51,6 +57,15 @@ var monochrome = false;
 */
 
 var winter = false;
+
+/*
+  Maybe you want to make a big complex painting. Or maybe you want a very simple one,
+  just to learn the basics, or create example figures. I don't mind. It's important
+  that you take things at your own pace.
+*/
+
+var simple = false;
+
 
 function preload(){
   data = loadTable("data/bobross.csv","csv","header");
@@ -100,16 +115,30 @@ function draw(){
   createCanvas(900,450);
   background(255);
   noLoop();
-
-  drawSimple();
-
+  if(simple){
+    drawSimple();
+  }
+  else{
+    drawFancy();
+  }
 }
-
 
 function drawSimple(){
   /*
    Let's just make a very simple glyph-like representation of the time series for now.
    We'll get fancier with brushes and textures once we've got the basics under control.
+  */
+  drawSky();
+  drawBubbleClouds();
+  drawSimpleMountains();
+  drawInterpolatingTrees();
+  drawWater();
+}
+
+function drawFancy(){
+  /*
+   Let's add a little bit of fanciness to our time series design, with
+   some gradients and shading.
   */
   drawSky();
   drawClouds();
@@ -144,10 +173,39 @@ function drawSky(){
     background(lerpColor(thalo_blue,titanium_white,0.75));
 }
 
+function drawBubbleClouds(){
+  /*
+   If you want to make sure there's a nice discrete puff for each
+   data point, we can draw our clouds as just a set of independent
+   parabolas. It doesn't look very realistic, but sometimes that's okay.
+  */
+  var delta;
+  delta = width/cloud_series.length;
+  if(!monochrome){
+    fill(titanium_white);
+  }
+  else{
+    fill(128);
+  }
+  noStroke();
+
+  var cx,cy;
+  var sy = height/4;
+  for(var i = 0;i<cloud_series.length;i++){
+      cx = (delta*i) + delta/2;
+      cy = (height/4) - (height/4*cloud_series[i]);
+      beginShape();
+      vertex(cx-delta,sy);
+      bezierVertex(cx-delta/2,sy,cx-delta/2,cy,cx,cy);
+      bezierVertex(cx+delta/2,cy,cx+delta/2,sy,cx+delta,sy);
+      endShape();
+  }
+}
+
 function drawClouds(){
   /*
-   Now let's draw fluffy little titanium white clouds, just nice Catmull Rom splines
-   control points for every data point.
+   Now let's draw fluffy little titanium white clouds, just nice bezier curves
+   that interpolate each point
   */
   var delta;
   delta = width/cloud_series.length;
@@ -293,6 +351,56 @@ function drawMountains(){
   noStroke();
 }
 
+function drawSimpleMountains(){
+  /*
+   These are just very simple mountains, with a big strong triangle for each point
+   in our data seres.
+  */
+  var mountain_mix = monochrome ? color(64) : lerpColor(van_dyke_brown,dark_sienna,0.2);
+
+  var delta = width/mountain_series.length;
+  var sx,ex,mx,sy,my;
+
+  var mountainBottom = 3*(height/4);
+
+  if(winter && !monochrome){
+    /*
+    During the winter, we can cover our mountans entirely in snow.
+    */
+    mountain_mix = lerpColor(titanium_white,prussian_blue,0.1);
+  }
+
+
+
+  noStroke();
+  fill(mountain_mix);
+
+  for(var i = 0;i<mountain_series.length;i++){
+    sx = ((i-1) * delta) + (delta/2);
+    sy = height/2,
+    mx = (i * delta) + (delta/2);
+    my = (height/2) - ((height/4)*mountain_series[i]);
+    ex = ((i+1) * delta) + (delta/2);
+    triangle(sx,sy,mx,my,ex,sy);
+  }
+
+  /*
+    Lastly, we'll bring in a little of our sky color and add that to the bottom of
+    our mountains, to make them fade away into the distance.
+  */
+
+  var mistColor = monochrome ? color(255) : lerpColor(thalo_blue,titanium_white,0.75);
+
+  var mistLevel;
+  for(i = height/2;i<mountainBottom;i++){
+    mistLevel = mistLevel = map(i,(height/2),mountainBottom,0,1);
+    stroke(lerpColor(mountain_mix,mistColor,mistLevel));
+    line(0,i,width,i);
+  }
+
+  noStroke();
+}
+
 function drawTrees(){
   /*
    Let's add a line of happy little trees!
@@ -306,7 +414,7 @@ function drawTrees(){
     van dyke brown.
   */
 
-  delta = width/mountain_series.length;
+  var delta = width/mountain_series.length;
 
   tColor = winter ? lerpColor(sap_green,van_dyke_brown,0.75) : lerpColor(sap_green,van_dyke_brown,0.45);
 
@@ -334,19 +442,25 @@ function drawTrees(){
   /*
     And we want to make sure we're interpolating our points, so let's add a line
     of extra trees in front.
-    These should be a little brighter, so they pop out right into the foreground,
-    so we'll load up our brush with sap green, and to that we'll add just a little bit of cadmium yellow.
-    The cad yellow is a strong color, so it only takes a little bit!
   */
+  drawInterpolatingTrees();
 
-  tColor = winter ? lerpColor(lerpColor(sap_green,van_dyke_brown,0.35),cadmium_yellow,0.1) : lerpColor(sap_green,cadmium_yellow,0.1);
+}
 
-  var x = 0;
-  for(i = 0;i<tree_series.length;i++){
-    x = map(i+0.5,0,tree_series.length,0,width);
-    tHeight = ((height/4) * tree_series[i]);
-    drawTree(x,3*(height/4),1.5*delta,tHeight,tColor);
-  }
+function drawInterpolatingTrees(){
+/*
+  These trees should be a little brighter, so they pop out right into the foreground,
+  so we'll load up our brush with sap green, and to that we'll add just a little bit of cadmium yellow.
+  The cad yellow is a strong color, so it only takes a little bit!
+*/
+var delta = width/mountain_series.length;
+var tColor = winter ? lerpColor(lerpColor(sap_green,van_dyke_brown,0.35),cadmium_yellow,0.1) : lerpColor(sap_green,cadmium_yellow,0.1);
+var tHeight,x;
+for(i = 0;i<tree_series.length;i++){
+  x = map(i+0.5,0,tree_series.length,0,width);
+  tHeight = ((height/4) * tree_series[i]);
+  drawTree(x,3*(height/4),1.5*delta,tHeight,tColor);
+}
 
 }
 
