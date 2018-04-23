@@ -361,7 +361,7 @@ function drawMountains(){
 function drawSimpleMountains(){
   /*
    These are just very simple mountains, with a big strong triangle for each point
-   in our data seres.
+   in our data series.
   */
   var mountain_mix = monochrome ? color(64) : lerpColor(van_dyke_brown,dark_sienna,0.2);
 
